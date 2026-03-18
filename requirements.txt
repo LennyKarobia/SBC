@@ -1,0 +1,5 @@
+Flask
+requests
+paho-mqtt
+adafruit-blinka
+adafruit-circuitpython-bno08x

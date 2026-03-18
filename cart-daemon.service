@@ -1,0 +1,14 @@
+[Unit]
+Description=Cart Daemon Service
+After=network.target
+
+[Service]
+Type=simple
+User=passion
+WorkingDirectory=/home/passion/cart-daemon
+ExecStart=/home/passion/cart-daemon/venv/bin/python /home/passion/cart-daemon/daemon.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

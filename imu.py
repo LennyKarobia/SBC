@@ -14,6 +14,15 @@ bno = None
 heading_offset = None
 
 
+def _angle_diff(a, b):
+    d = a - b
+    if d > 180:
+        d -= 360
+    if d < -180:
+        d += 360
+    return abs(d)
+
+
 def init_imu():
     global bno, heading_offset
 
@@ -29,11 +38,32 @@ def init_imu():
             bno = sensor
             print(f"IMU connected at {hex(addr)}")
 
-            # Let readings settle before capturing startup heading offset.
-            time.sleep(1)
-            heading_offset = get_raw_heading()
-            print(f"IMU zero-heading offset set to {heading_offset:.4f}°")
+            # Wait for heading to stabilize before capturing offset
+            window = []
+            print("Stabilizing IMU...")
+
+            while True:
+                time.sleep(0.05)
+                h = get_raw_heading()
+                window.append(h)
+
+                if len(window) > 20:
+                    window.pop(0)
+
+                    diffs = [_angle_diff(window[i], window[i - 1]) for i in range(1, len(window))]
+                    avg_diff = sum(diffs) / len(diffs)
+
+                    if avg_diff < 0.5:
+                        break
+
+            # Wrap-safe average of the stable window
+            sin_sum = sum(math.sin(math.radians(h)) for h in window)
+            cos_sum = sum(math.cos(math.radians(h)) for h in window)
+            heading_offset = math.degrees(math.atan2(sin_sum, cos_sum)) % 360
+
+            print(f"IMU zero-heading offset set to {heading_offset:.3f}°")
             return
+
         except Exception:
             continue
 
@@ -48,7 +78,7 @@ def get_raw_heading():
         1.0 - 2.0 * (quat_j * quat_j + quat_k * quat_k),
     )
 
-    return math.degrees(yaw) % 360
+    return (-math.degrees(yaw)) % 360
 
 
 def get_heading():

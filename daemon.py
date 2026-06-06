@@ -148,7 +148,9 @@ app = Flask(__name__)
 
 @app.route("/position")
 def position():
-    return fusion.get_position()
+    payload = fusion.get_position()
+    payload["tag_id"] = state["tag_id"]
+    return jsonify(payload)
 
 
 @app.route("/health")

@@ -9,6 +9,8 @@ WorkingDirectory=/home/passion/cart-daemon
 ExecStart=/home/passion/cart-daemon/venv/bin/python /home/passion/cart-daemon/daemon.py
 Restart=always
 RestartSec=2
+EnvironmentFile=-/home/passion/cart-daemon/cart-daemon.env
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target

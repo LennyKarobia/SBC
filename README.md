@@ -9,6 +9,10 @@ Raspberry Pi cart daemon that fuses UWB + IMU into a `/position` API.
 - `imu.py` - BNO085 setup and sensor reads (heading, accel, gyro)
 - `requirements.txt` - Python dependencies
 - `cart-daemon.service` - Systemd unit file
+- `cart-daemon.env.example` - MQTT credentials template (copy to `cart-daemon.env`)
+- `kiosk.py` / `kiosk.desktop` - Fullscreen Passion app launcher
+- `nginx-cart.conf` - nginx proxy for `/position` and `app.getpassion.net`
+- `passion-logo.png` - Desktop icon
 - `binding.json` - Cached `sbc_id` to `tag_id` mapping (runtime cache)
 
 ## 1) Setup (SBC)
@@ -19,6 +23,8 @@ python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+cp cart-daemon.env.example cart-daemon.env
+# edit cart-daemon.env with MQTT credentials
 ```
 
 ## 2) Run manually (for testing)
@@ -53,5 +59,7 @@ journalctl -u cart-daemon -f
 ## 5) Notes
 
 - `binding.json` is written automatically by the daemon.
+- MQTT credentials are loaded from `cart-daemon.env` (not committed to git).
 - If IMU is not found, `imu.py` tries addresses `0x4A` then `0x4B`.
 - Heading is startup-zeroed in `imu.py`.
+- `/position` clears `x`/`y` when UWB data is older than 3 seconds (`position_stale`).

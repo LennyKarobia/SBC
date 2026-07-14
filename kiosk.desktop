@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Passion App
+Comment=Launch Kiosk App
+Exec=python3 /home/passion/cart-daemon/kiosk.py
+Icon=/home/passion/cart-daemon/passion-logo.png
+Terminal=false
+Type=Application

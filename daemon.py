@@ -16,11 +16,12 @@ import imu
 API_BASE = "https://getpassion.net"
 MQTT_HOST = "44.254.150.42"
 MQTT_PORT = 1883
-MQTT_USER = "zahir"
-MQTT_PASS = "Samaki123"
+MQTT_USER = os.environ.get("MQTT_USER", "zahir")
+MQTT_PASS = os.environ.get("MQTT_PASS", "")
 
 BINDING_FILE = os.path.expanduser("~/cart-daemon/binding.json")
 HTTP_PORT = 6060
+UWB_STALE_SECONDS = 3
 
 fusion = Fusion()
 
@@ -149,6 +150,15 @@ app = Flask(__name__)
 @app.route("/position")
 def position():
     payload = fusion.get_position()
+    now = int(time.time())
+    last_msg_ts = state["last_msg_ts"]
+    is_stale = last_msg_ts is None or (now - last_msg_ts) > UWB_STALE_SECONDS
+    if is_stale:
+        # Don't serve stale cart coordinates when the tag is off/disconnected.
+        payload["x"] = None
+        payload["y"] = None
+    payload["position_stale"] = is_stale
+    payload["sbc_id"] = state["sbc_id"]
     payload["tag_id"] = state["tag_id"]
     return jsonify(payload)
 
@@ -167,6 +177,9 @@ def health():
 
 
 def main():
+    if not MQTT_PASS:
+        raise RuntimeError("MQTT_PASS is not set (use cart-daemon.env or Environment=MQTT_PASS)")
+
     imu.init_imu()
 
     sbc_id = get_sbc_id()
